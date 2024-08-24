@@ -2378,8 +2378,8 @@ static void DeleteFirstMoveAndGiveMoveToBoxMon(struct BoxPokemon *boxMon, u16 mo
 }
 
 // Own function in pokeemerald
-#define ShouldGetStatBadgeBoost(flag, battler)\
-    (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_EREADER_TRAINER)) && FlagGet(flag) && GetBattlerSide(battler) == B_SIDE_PLAYER)
+// #define ShouldGetStatBadgeBoost(flag, battler)\
+//    (!(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_EREADER_TRAINER)) && FlagGet(flag) && GetBattlerSide(battler) == B_SIDE_PLAYER)
 
 
 s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *defender, u32 move, u16 sideStatus, u16 powerOverride, u8 typeOverride, u8 battlerIdAtk, u8 battlerIdDef)
@@ -2437,14 +2437,20 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     if (attacker->ability == ABILITY_HUGE_POWER || attacker->ability == ABILITY_PURE_POWER)
         attack *= 2;
 
-    if (ShouldGetStatBadgeBoost(FLAG_BADGE01_GET, battlerIdAtk))
-        attack = (110 * attack) / 100;
-    if (ShouldGetStatBadgeBoost(FLAG_BADGE05_GET, battlerIdDef))
-        defense = (110 * defense) / 100;
-    if (ShouldGetStatBadgeBoost(FLAG_BADGE07_GET, battlerIdAtk))
-        spAttack = (110 * spAttack) / 100;
-    if (ShouldGetStatBadgeBoost(FLAG_BADGE07_GET, battlerIdDef))
-        spDefense = (110 * spDefense) / 100;
+	if (attacker->ability == ABILITY_WISE_POWER)
+		spAttack *= 2;
+
+	if (defender->ability == ABILITY_STURDY && defender->hp == (defender->maxHP))
+		defense *= 2;
+
+  //  if (ShouldGetStatBadgeBoost(FLAG_BADGE01_GET, battlerIdAtk))
+  //      attack = (110 * attack) / 100;
+  //  if (ShouldGetStatBadgeBoost(FLAG_BADGE05_GET, battlerIdDef))
+  //      defense = (110 * defense) / 100;
+  //  if (ShouldGetStatBadgeBoost(FLAG_BADGE07_GET, battlerIdAtk))
+  //      spAttack = (110 * spAttack) / 100;
+  //  if (ShouldGetStatBadgeBoost(FLAG_BADGE07_GET, battlerIdDef))
+   //     spDefense = (110 * spDefense) / 100;
 
     // Apply type-bonus hold item
     for (i = 0; i < ARRAY_COUNT(sHoldEffectToType); i++)
@@ -2471,8 +2477,14 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
         spAttack *= 2;
     if (defenderHoldEffect == HOLD_EFFECT_DEEP_SEA_SCALE && defender->species == SPECIES_CLAMPERL)
         spDefense *= 2;
-    if (attackerHoldEffect == HOLD_EFFECT_LIGHT_BALL && attacker->species == SPECIES_PIKACHU)
-        spAttack *= 2;
+	if (attackerHoldEffect == HOLD_EFFECT_LIGHT_BALL && attacker->species == SPECIES_PIKACHU) {
+		spAttack *= 2;
+		attack *= 2;
+	}
+	if (attackerHoldEffect == HOLD_EFFECT_LIGHT_BALL && attacker->species == SPECIES_RAICHU) {
+		spAttack = (150 * spAttack) / 100;
+		attack = (150 * attack) / 100;
+	}
     if (defenderHoldEffect == HOLD_EFFECT_METAL_POWDER && defender->species == SPECIES_DITTO)
         defense *= 2;
     if (attackerHoldEffect == HOLD_EFFECT_THICK_CLUB && (attacker->species == SPECIES_CUBONE || attacker->species == SPECIES_MAROWAK))
@@ -5563,8 +5575,9 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
             holdEffect = ItemId_GetHoldEffect(heldItem);
         }
 
-        if (holdEffect == HOLD_EFFECT_MACHO_BRACE)
-            evIncrease *= 2;
+			evIncrease *= 4;
+		if (holdEffect == HOLD_EFFECT_MACHO_BRACE)
+            evIncrease *= 8;
 
         if (totalEVs + (s16)evIncrease > MAX_TOTAL_EVS)
             evIncrease = ((s16)evIncrease + MAX_TOTAL_EVS) - (totalEVs + evIncrease);
