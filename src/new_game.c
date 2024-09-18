@@ -125,7 +125,7 @@ void NewGameInitData(void)
     ClearPokedexFlags();
     InitEventData();
     ResetFameChecker();
-    SetMoney(&gSaveBlock1Ptr->money, 2000);
+    SetMoney(&gSaveBlock1Ptr->money, 3000);
     ResetGameStats();
     ClearPlayerLinkBattleRecords();
     InitHeracrossSizeRecord();

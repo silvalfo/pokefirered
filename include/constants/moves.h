@@ -356,11 +356,8 @@
 #define MOVE_WATER_PULSE 352
 #define MOVE_DOOM_DESIRE 353
 #define MOVE_PSYCHO_BOOST 354
-// new moves!
-#define MOVE_DARK_LARIAT 355
-#define MOVE_HEAVY_SLAM 356
 
-#define MOVES_COUNT 357
+#define MOVES_COUNT 355
 
 // Used for checks for moves affected by Disable, Mimic, etc.
 #define MOVE_UNAVAILABLE 0xFFFF

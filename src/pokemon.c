@@ -1617,11 +1617,11 @@ static const u8 sStatsToRaise[] =
 // 0-99, 100-199, 200+
 static const s8 sFriendshipEventDeltas[][3] = 
 {
-    [FRIENDSHIP_EVENT_GROW_LEVEL]           = { 5,  4,  3 },
-    [FRIENDSHIP_EVENT_VITAMIN]              = { 5,  4,  3 },
-    [FRIENDSHIP_EVENT_BATTLE_ITEM]          = { 2,  1,  1 },
-    [FRIENDSHIP_EVENT_LEAGUE_BATTLE]        = { 3,  2,  2 },
-    [FRIENDSHIP_EVENT_LEARN_TMHM]           = { 2,  2,  1 },
+    [FRIENDSHIP_EVENT_GROW_LEVEL]           = { 5,  3,  2 },
+    [FRIENDSHIP_EVENT_VITAMIN]              = { 5,  3,  2 },
+    [FRIENDSHIP_EVENT_BATTLE_ITEM]          = { 1,  1,  0 },
+    [FRIENDSHIP_EVENT_LEAGUE_BATTLE]        = { 3,  2,  1 },
+    [FRIENDSHIP_EVENT_LEARN_TMHM]           = { 1,  1,  0 },
     [FRIENDSHIP_EVENT_WALKING]              = { 1,  1,  1 },
     [FRIENDSHIP_EVENT_MASSAGE]              = { 3,  3,  3 },
     [FRIENDSHIP_EVENT_FAINT_SMALL]          = {-1, -1, -1 },
@@ -1769,9 +1769,6 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     u32 personality;
     u32 value;
     u16 checksum;
-	u8 maxIV = MAX_IV_MASK;
-	u8 maxIVMinusOne = MAX_IV_MASK - 1;
-	u8 statIDs[] = { 0, 1, 2, 3, 4, 5 };
 
     ZeroBoxMonData(boxMon);
 
@@ -1783,52 +1780,25 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     SetBoxMonData(boxMon, MON_DATA_PERSONALITY, &personality);
 
     //Determine original trainer ID
-	switch (otIdType) //Pokemon cannot be shiny
+    if (otIdType == OT_ID_RANDOM_NO_SHINY) //Pokemon cannot be shiny
     {
-	case OT_ID_SHINY:
+        u32 shinyValue;
+        do
         {
-		value = HIHALF(personality) ^ LOHALF(personality);
-	}
-		break;
-
-	case OT_ID_RANDOM_NO_SHINY:
-	{
-		u32 shinyValue = 0;
-		do
-		{
-			value = Random32();
-			shinyValue = HIHALF(value) ^ LOHALF(value) ^ HIHALF(personality) ^ LOHALF(personality);
-		} while (shinyValue < SHINY_ODDS);
-	}
-	break;
-
-	case OT_ID_PRESET:
-	{
-		value = fixedOtId;
-	}
-	break;
-
-	default:
-	{
-		value = gSaveBlock2Ptr->playerTrainerId[0]
-			| (gSaveBlock2Ptr->playerTrainerId[1] << 8)
-			| (gSaveBlock2Ptr->playerTrainerId[2] << 16)
-			| (gSaveBlock2Ptr->playerTrainerId[3] << 24);
-
-#ifdef ITEM_SHINY_CHARM
-		if (CheckBagHasItem(ITEM_SHINY_CHARM, 1))
-		{
-			u32 shinyValue;
-			u32 rolls = 0;
-			do
-			{
-				personality = Random32();
-				shinyValue = HIHALF(value) ^ LOHALF(value) ^ HIHALF(personality) ^ LOHALF(personality);
-				rolls++;
-			} while (shinyValue >= SHINY_ODDS && rolls < I_SHINY_CHARM_REROLLS);
-		}
-#endif
-	}
+            value = Random32();
+            shinyValue = GET_SHINY_VALUE(value, personality);
+        } while (shinyValue < SHINY_ODDS);
+    }
+    else if (otIdType == OT_ID_PRESET) //Pokemon has a preset OT ID
+    {
+        value = fixedOtId;
+    }
+    else //Player is the OT
+    {
+        value = gSaveBlock2Ptr->playerTrainerId[0]
+              | (gSaveBlock2Ptr->playerTrainerId[1] << 8)
+              | (gSaveBlock2Ptr->playerTrainerId[2] << 16)
+              | (gSaveBlock2Ptr->playerTrainerId[3] << 24);
     }
 
     SetBoxMonData(boxMon, MON_DATA_OT_ID, &value);
@@ -1862,9 +1832,8 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
     }
     else
     {
-		u32 iv, i;
+        u32 iv;
         value = Random();
-
 
         iv = value & MAX_IV_MASK;
         SetBoxMonData(boxMon, MON_DATA_HP_IV, &iv);
@@ -1881,17 +1850,6 @@ void CreateBoxMon(struct BoxPokemon *boxMon, u16 species, u8 level, u8 fixedIV, 
         SetBoxMonData(boxMon, MON_DATA_SPATK_IV, &iv);
         iv = (value & (MAX_IV_MASK << 10)) >> 10;
         SetBoxMonData(boxMon, MON_DATA_SPDEF_IV, &iv);
-
-		// Setall IVs to 30 or 31
-
-		for (i = 0; i < 6; i++)
-		{
-			iv = Random() & 1;
-			if (iv == 1)
-				SetBoxMonData(boxMon, MON_DATA_HP_IV + statIDs[i], &maxIV);
-			else
-				SetBoxMonData(boxMon, MON_DATA_HP_IV + statIDs[i], &maxIVMinusOne);
-		}
     }
 
     if (gSpeciesInfo[species].abilities[1])
@@ -1916,7 +1874,7 @@ void CreateMonWithNature(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV,
     CreateMon(mon, species, level, fixedIV, TRUE, personality, OT_ID_PLAYER_ID, 0);
 }
 
-void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 gender, u8 nature, u8 unownLetter, u8 otIdType)
+void CreateMonWithGenderNatureLetter(struct Pokemon *mon, u16 species, u8 level, u8 fixedIV, u8 gender, u8 nature, u8 unownLetter)
 {
     u32 personality;
 
@@ -2524,18 +2482,14 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
 		attack *= 2;
 	}
 	if (attackerHoldEffect == HOLD_EFFECT_LIGHT_BALL && attacker->species == SPECIES_RAICHU) {
-		spAttack = (130 * spAttack) / 100;
-		attack = (130 * attack) / 100;
+		spAttack = (150 * spAttack) / 100;
+		attack = (150 * attack) / 100;
 	}
     if (defenderHoldEffect == HOLD_EFFECT_METAL_POWDER && defender->species == SPECIES_DITTO)
         defense *= 2;
     if (attackerHoldEffect == HOLD_EFFECT_THICK_CLUB && (attacker->species == SPECIES_CUBONE || attacker->species == SPECIES_MAROWAK))
         attack *= 2;
-   
-	// Apply boosts from abilities
-	if (attacker->ability == ABILITY_KING_OF_FISTS && gBattleMoves[gCurrentMove].flags & FLAG_PUNCHING_MOVE)
-		spAttack = attack;
-	if (defender->ability == ABILITY_THICK_FAT && (type == TYPE_FIRE || type == TYPE_ICE))
+    if (defender->ability == ABILITY_THICK_FAT && (type == TYPE_FIRE || type == TYPE_ICE))
         spAttack /= 2;
     if (attacker->ability == ABILITY_HUSTLE)
         attack = (150 * attack) / 100;
@@ -2564,7 +2518,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     if (gBattleMoves[gCurrentMove].effect == EFFECT_EXPLOSION)
         defense /= 2;
 
-    if (IS_TYPE_PHYSICAL(type) || (attacker->ability == ABILITY_KING_OF_FISTS && gBattleMoves[gCurrentMove].flags & FLAG_PUNCHING_MOVE))
+    if (IS_TYPE_PHYSICAL(type))
     {
         if (gCritMultiplier == 2)
         {
@@ -2619,7 +2573,7 @@ s32 CalculateBaseDamage(struct BattlePokemon *attacker, struct BattlePokemon *de
     if (type == TYPE_MYSTERY)
         damage = 0; // is ??? type. does 0 damage.
 
-    if (IS_TYPE_SPECIAL(type) && !((attacker->ability == ABILITY_KING_OF_FISTS && gBattleMoves[gCurrentMove].flags & FLAG_PUNCHING_MOVE)))
+    if (IS_TYPE_SPECIAL(type))
     {
         if (gCritMultiplier == 2)
         {
@@ -5171,7 +5125,7 @@ u16 GetEvolutionTargetSpecies(struct Pokemon *mon, u8 type, u16 evolutionItem)
                     targetSpecies = gEvolutionTable[species][i].targetSpecies;
                     
                     // Prevent cross-generational evolutions like Scizor and Steelix until the National Pokedex is obtained
-                    //if (IsNationalPokedexEnabled() || targetSpecies <= KANTO_SPECIES_END)
+                    if (IsNationalPokedexEnabled() || targetSpecies <= KANTO_SPECIES_END)
                     {
                         heldItem = ITEM_NONE;
                         SetMonData(mon, MON_DATA_HELD_ITEM, &heldItem);
@@ -5517,8 +5471,8 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
 
         if (event == FRIENDSHIP_EVENT_WALKING)
         {
-            // 100% chance every 128 steps
-            // if (Random() & 1)
+            // 50% chance every 128 steps
+            if (Random() & 1)
                 return;
         }
         if (event == FRIENDSHIP_EVENT_LEAGUE_BATTLE)
@@ -5534,8 +5488,8 @@ void AdjustFriendship(struct Pokemon *mon, u8 event)
 
         delta = sFriendshipEventDeltas[event][friendshipLevel];
         if (delta > 0 && holdEffect == HOLD_EFFECT_FRIENDSHIP_UP)
-            // 100% increase, rounding down
-            delta = (200 * delta) / 100;
+            // 50% increase, rounding down
+            delta = (150 * delta) / 100;
 
         friendship += delta;
         if (delta > 0)
@@ -5581,9 +5535,9 @@ void MonGainEVs(struct Pokemon *mon, u16 defeatedSpecies)
         hasHadPokerus = CheckPartyHasHadPokerus(mon, 0);
 
         if (hasHadPokerus)
-            multiplier = 4;
-        else
             multiplier = 2;
+        else
+            multiplier = 1;
 
         switch (i)
         {
@@ -5882,8 +5836,8 @@ u16 SpeciesToPokedexNum(u16 species)
 {
     species = SpeciesToNationalPokedexNum(species);
 
- //   if (!IsNationalPokedexEnabled() && species > KANTO_SPECIES_END)
- //       return 0xFFFF;
+    if (!IsNationalPokedexEnabled() && species > KANTO_SPECIES_END)
+        return 0xFFFF;
     return species;
 }
 

@@ -181,42 +181,6 @@
 #define DEFAULT_STAT_STAGE 6
 #define MAX_STAT_STAGE    12
 
-#define BEST_IV_SPREAD_HIDDEN_POWER_BUG      {31, 31, 31, 30, 31, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_GHOST     {31, 31, 31, 31, 31, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_DRAGON   {30, 31, 31, 31, 31, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_ELECTRIC {31, 31, 31, 31, 30, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_FIGHTING {31, 31, 30, 30, 30, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_FIRE     {31, 30, 31, 30, 30, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_FLYING   {31, 31, 31, 30, 30, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_DARK    {31, 30, 31, 31, 31, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_GRASS    {30, 31, 31, 31, 30, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_GROUND   {31, 31, 31, 31, 30, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_ICE      {31, 31, 31, 30, 31, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_POISON   {31, 31, 30, 31, 30, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_PSYCHIC  {30, 31, 31, 30, 31, 31}
-#define BEST_IV_SPREAD_HIDDEN_POWER_ROCK     {31, 31, 30, 30, 31, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_STEEL    {31, 31, 31, 31, 31, 30}
-#define BEST_IV_SPREAD_HIDDEN_POWER_WATER    {31, 31, 31, 30, 30, 31}
-
-#define BEST_IV_SPREAD_SPECIAL               {31,  0, 31, 31, 31, 31}
-#define BEST_IV_SPREAD_TRICK_ROOM            {31, 31, 31,  0, 31, 31}
-#define BEST_IV_SPREAD_SPECIAL_TRICK_ROOM    {31,  0, 31,  0, 31, 31}
-
-#define BEST_IV_SPREAD BEST_IV_SPREAD_HIDDEN_POWER_GHOST
-
-#define EV_SPREAD_HP_SPATK                   {252, 0, 0, 0, 252, 0}
-#define EV_SPREAD_SPEED_SPATK                {0, 0, 0, 252, 252, 0}
-#define EV_SPREAD_HP_ATK                     {252, 252, 0, 0, 0, 0}
-#define EV_SPREAD_SPEED_ATK                  0, 252, 0, 252, 0, 0}
-
-#define FRIENDSHIP_FRUSTRATION   1
-#define FRIENDSHIP_RETURN      255
-
-#define WORST_IVS                1
-
-#define ABILITY_SLOT_1 1
-#define ABILITY_SLOT_2 2
-
 // Shiny odds
 #define SHINY_ODDS 8 // Actual probability is SHINY_ODDS/65536
 
@@ -225,7 +189,6 @@
 #define OT_ID_PLAYER_ID       0
 #define OT_ID_PRESET          1
 #define OT_ID_RANDOM_NO_SHINY 2
-#define OT_ID_SHINY			  3
 
 #define MON_GIVEN_TO_PARTY 0
 #define MON_GIVEN_TO_PC    1
@@ -267,9 +230,9 @@
 #define MAX_PER_STAT_IVS 31
 #define MAX_IV_MASK 31
 #define USE_RANDOM_IVS (MAX_PER_STAT_IVS + 1)
-#define MAX_PER_STAT_EVS 252
+#define MAX_PER_STAT_EVS 255
 #define MAX_TOTAL_EVS 510
-#define EV_ITEM_RAISE_LIMIT 252
+#define EV_ITEM_RAISE_LIMIT 100
 
 // Battle move flags
 #define FLAG_MAKES_CONTACT          (1 << 0)
@@ -278,7 +241,6 @@
 #define FLAG_SNATCH_AFFECTED        (1 << 3)
 #define FLAG_MIRROR_MOVE_AFFECTED   (1 << 4)
 #define FLAG_KINGS_ROCK_AFFECTED    (1 << 5)
-#define FLAG_PUNCHING_MOVE			(1 << 6)
 
 // Growth rates
 #define GROWTH_MEDIUM_FAST  0

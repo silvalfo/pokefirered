@@ -3,7 +3,7 @@ static const u8 sStenchDescription[] = _("Helps repel wild POKéMON.");
 static const u8 sDrizzleDescription[] = _("Summons rain in battle.");
 static const u8 sSpeedBoostDescription[] = _("Gradually boosts SPEED.");
 static const u8 sBattleArmorDescription[] = _("Blocks critical hits.");
-static const u8 sSturdyDescription[] = _("Higher defense when at full health.");
+static const u8 sSturdyDescription[] = _("Negates 1-hit KO attacks.");
 static const u8 sDampDescription[] = _("Prevents self-destruction.");
 static const u8 sLimberDescription[] = _("Prevents paralysis.");
 static const u8 sSandVeilDescription[] = _("Ups evasion in a sandstorm.");
@@ -77,7 +77,6 @@ static const u8 sShellArmorDescription[] = _("Blocks critical hits.");
 static const u8 sCacophonyDescription[] = _("Avoids sound-based moves.");
 static const u8 sAirLockDescription[] = _("Negates weather effects.");
 static const u8 sWisePowerDescription[] = _("Raises SP. ATTACK.");
-static const u8 sKingOfFistsDescription[] = _("Punches are always physical.");
 
 const u8 *const gAbilityDescriptionPointers[ABILITIES_COUNT] =
 {
@@ -160,7 +159,6 @@ const u8 *const gAbilityDescriptionPointers[ABILITIES_COUNT] =
     [ABILITY_CACOPHONY] = sCacophonyDescription,
     [ABILITY_AIR_LOCK] = sAirLockDescription,
 	[ABILITY_WISE_POWER] = sWisePowerDescription,
-	[ABILITY_KING_OF_FISTS] = sKingOfFistsDescription,
 };
 
 const u8 gAbilityNames[ABILITIES_COUNT][ABILITY_NAME_LENGTH + 1] =
@@ -244,5 +242,4 @@ const u8 gAbilityNames[ABILITIES_COUNT][ABILITY_NAME_LENGTH + 1] =
     [ABILITY_CACOPHONY] = _("CACOPHONY"),
     [ABILITY_AIR_LOCK] = _("AIR LOCK"),
 	[ABILITY_WISE_POWER] = _("WISE POWER"),
-	[ABILITY_KING_OF_FISTS] = _("FIST KING"),
 };

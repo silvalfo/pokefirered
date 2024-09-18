@@ -99,16 +99,6 @@ static const struct MenuAction sMenuActions_ItemPc[] = {
 
 static const struct ItemSlot gNewGamePCItems[] = {
     { ITEM_POTION, 1 },
-	{ ITEM_LUXURY_BALL, 99},
-	{ ITEM_PREMIER_BALL, 99},
-	{ ITEM_AMULET_COIN, 1},
-	{ ITEM_PROTEIN, 10},
-	{ ITEM_IRON, 10},
-	{ ITEM_CARBOS, 10},
-	{ ITEM_CALCIUM, 10},
-	{ ITEM_ZINC, 10},
-	{ ITEM_HP_UP, 10},
-	{ ITEM_PP_UP, 96},
     { ITEM_NONE,   0 }
 };
 
