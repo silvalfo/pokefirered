@@ -121,7 +121,7 @@ const struct PokedexEntry gPokedexEntries[] =
     {
         .categoryName = _("SHELLFISH"),
         .height = 16,
-        .weight = 855,
+        .weight = 1800,
         .description = gBlastoisePokedexText,
         .unusedDescription = gBlastoisePokedexTextUnused,
         .pokemonScale = 256,
@@ -3956,7 +3956,7 @@ const struct PokedexEntry gPokedexEntries[] =
     {
         .categoryName = _("IRON ARMOR"),
         .height = 4,
-        .weight = 600,
+        .weight = 800,
         .description = gAronPokedexText,
         .unusedDescription = gAronPokedexTextUnused,
         .pokemonScale = 419,
@@ -3969,7 +3969,7 @@ const struct PokedexEntry gPokedexEntries[] =
     {
         .categoryName = _("IRON ARMOR"),
         .height = 9,
-        .weight = 1200,
+        .weight = 1600,
         .description = gLaironPokedexText,
         .unusedDescription = gLaironPokedexTextUnused,
         .pokemonScale = 275,
@@ -3982,7 +3982,7 @@ const struct PokedexEntry gPokedexEntries[] =
     {
         .categoryName = _("IRON ARMOR"),
         .height = 21,
-        .weight = 3600,
+        .weight = 8000,
         .description = gAggronPokedexText,
         .unusedDescription = gAggronPokedexTextUnused,
         .pokemonScale = 274,
@@ -4177,7 +4177,7 @@ const struct PokedexEntry gPokedexEntries[] =
     {
         .categoryName = _("FLOAT WHALE"),
         .height = 145,
-        .weight = 3980,
+        .weight = 9990,
         .description = gWailordPokedexText,
         .unusedDescription = gWailordPokedexTextUnused,
         .pokemonScale = 276,

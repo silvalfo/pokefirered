@@ -308,6 +308,7 @@ static void Cmd_subattackerhpbydmg(void);
 static void Cmd_removeattackerstatus1(void);
 static void Cmd_finishaction(void);
 static void Cmd_finishturn(void);
+static void Cmd_weightattackbasepowercalc(void);
 
 void (* const gBattleScriptingCommandsTable[])(void) =
 {
@@ -559,6 +560,7 @@ void (* const gBattleScriptingCommandsTable[])(void) =
     Cmd_removeattackerstatus1,                   //0xF5
     Cmd_finishaction,                            //0xF6
     Cmd_finishturn,                              //0xF7
+	Cmd_weightattackbasepowercalc				 //0xF8
 };
 
 struct StatFractions
@@ -753,14 +755,24 @@ static const u16 sNaturePowerMoves[] =
 };
 
 // format: min. weight (hectograms), base power
+static const u16 sRelativeWeightToDamageTable[] =
+{
+    2,      40,
+    3,      60,
+    4,		80,
+    5,		100,
+    0xFFFF, 0xFFFF
+};
+
+// format: relative weight, base power
 static const u16 sWeightToDamageTable[] =
 {
-    100, 20,
-    250, 40,
-    500, 60,
-    1000, 80,
-    2000, 100,
-    0xFFFF, 0xFFFF
+	100, 20,
+	250, 40,
+	500, 60,
+	1000, 80,
+	2000, 100,
+	0xFFFF, 0xFFFF
 };
 
 struct PickupItem
@@ -1066,8 +1078,8 @@ static void Cmd_accuracycheck(void)
         calc = sAccuracyStageRatios[buff].dividend * moveAcc;
         calc /= sAccuracyStageRatios[buff].divisor;
 
-        if (gBattleMons[gBattlerAttacker].ability == ABILITY_COMPOUND_EYES)
-            calc = (calc * 130) / 100; // 1.3 compound eyes boost
+        if (gBattleMons[gBattlerAttacker].ability == ABILITY_COMPOUND_EYES || gBattleMons[gBattlerAttacker].ability == ABILITY_ILLUMINATE)
+            calc = (calc * 130) / 100; // 1.3 compound eyes boost, now also affects illuminate
         if (WEATHER_HAS_EFFECT && gBattleMons[gBattlerTarget].ability == ABILITY_SAND_VEIL && gBattleWeather & B_WEATHER_SANDSTORM)
             calc = (calc * 80) / 100; // 1.2 sand veil loss
         if (gBattleMons[gBattlerAttacker].ability == ABILITY_HUSTLE && IS_TYPE_PHYSICAL(type))
@@ -1196,11 +1208,16 @@ static void Cmd_critcalc(void)
     if ((gBattleMons[gBattlerTarget].ability != ABILITY_BATTLE_ARMOR && gBattleMons[gBattlerTarget].ability != ABILITY_SHELL_ARMOR)
      && !(gStatuses3[gBattlerAttacker] & STATUS3_CANT_SCORE_A_CRIT)
      && !(gBattleTypeFlags & BATTLE_TYPE_OLD_MAN_TUTORIAL)
-     && !(Random() % sCriticalHitChance[critChance])
+     && (!(Random() % sCriticalHitChance[critChance]))
+	 && !(gBattleMoves[gCurrentMove].effect == EFFECT_ALWAYS_CRIT)
      && (!(gBattleTypeFlags & BATTLE_TYPE_FIRST_BATTLE) || BtlCtrl_OakOldMan_TestState2Flag(1))
      && !(gBattleTypeFlags & BATTLE_TYPE_POKEDUDE))
         gCritMultiplier = 2;
-    else
+    else if (gBattleMoves[gCurrentMove].effect == EFFECT_ALWAYS_CRIT
+		&& (gBattleMons[gBattlerTarget].ability != ABILITY_BATTLE_ARMOR && gBattleMons[gBattlerTarget].ability != ABILITY_SHELL_ARMOR)
+		&& !(gStatuses3[gBattlerAttacker] & STATUS3_CANT_SCORE_A_CRIT))
+		gCritMultiplier = 2;
+	else
         gCritMultiplier = 1;
 
     gBattlescriptCurrInstr++;
@@ -1822,7 +1839,7 @@ static void Cmd_datahpupdate(void)
                 if (!gSpecialStatuses[gActiveBattler].dmg && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
                     gSpecialStatuses[gActiveBattler].dmg = gHpDealt;
 
-                if (IS_TYPE_PHYSICAL(moveType) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE) && gCurrentMove != MOVE_PAIN_SPLIT)
+                if ((IS_TYPE_PHYSICAL(moveType) || (gBattleMons[gEffectBattler].ability == ABILITY_KING_OF_FISTS && gBattleMoves[gCurrentMove].flags & FLAG_PUNCHING_MOVE)) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE) && gCurrentMove != MOVE_PAIN_SPLIT)
                 {
                     gProtectStructs[gActiveBattler].physicalDmg = gHpDealt;
                     gSpecialStatuses[gActiveBattler].physicalDmg = gHpDealt;
@@ -5001,10 +5018,10 @@ static void Cmd_switchineffects(void)
         // There is a hack here in pokeemerald to ensure the truant counter will be 0 when the battler's next turn starts.
         // The truant counter is not updated in the case where a mon switches in after a lost judgement in the battle arena.
         if (gBattleMons[gActiveBattler].ability == ABILITY_TRUANT)
-        //if (gBattleMons[gActiveBattler].ability == ABILITY_TRUANT && !gDisableStructs[gActiveBattler].truantSwitchInHack) // In pokeemerald.
+        if (gBattleMons[gActiveBattler].ability == ABILITY_TRUANT && !gDisableStructs[gActiveBattler].truantSwitchInHack) // In pokeemerald.
             gDisableStructs[gActiveBattler].truantCounter = 1;
 
-        //gDisableStructs[gActiveBattler].truantSwitchInHack = 0; // In pokeemerald, otherwise unused.
+        gDisableStructs[gActiveBattler].truantSwitchInHack = 0; // In pokeemerald, otherwise unused.
 
         if (!AbilityBattleEffects(ABILITYEFFECT_ON_SWITCHIN, gActiveBattler, 0, 0, 0)
             && !ItemBattleEffects(ITEMEFFECT_ON_SWITCH_IN, gActiveBattler, FALSE))
@@ -5333,37 +5350,8 @@ static void Cmd_getmoneyreward(void)
         }
         else
         {
-            switch (gTrainers[gTrainerBattleOpponent_A].partyFlags)
-            {
-            case 0:
-                {
-                    const struct TrainerMonNoItemDefaultMoves *party1 = gTrainers[gTrainerBattleOpponent_A].party.NoItemDefaultMoves;
-                    
-                    lastMonLevel = party1[gTrainers[gTrainerBattleOpponent_A].partySize - 1].lvl;
-                }
-                break;
-            case F_TRAINER_PARTY_CUSTOM_MOVESET:
-                {
-                    const struct TrainerMonNoItemCustomMoves *party2 = gTrainers[gTrainerBattleOpponent_A].party.NoItemCustomMoves;
-                    
-                    lastMonLevel = party2[gTrainers[gTrainerBattleOpponent_A].partySize - 1].lvl;
-                }
-                break;
-            case F_TRAINER_PARTY_HELD_ITEM:
-                {
-                    const struct TrainerMonItemDefaultMoves *party3 = gTrainers[gTrainerBattleOpponent_A].party.ItemDefaultMoves;
-                    
-                    lastMonLevel = party3[gTrainers[gTrainerBattleOpponent_A].partySize - 1].lvl;
-                }
-                break;
-            case (F_TRAINER_PARTY_CUSTOM_MOVESET | F_TRAINER_PARTY_HELD_ITEM):
-                {
-                    party4 = gTrainers[gTrainerBattleOpponent_A].party.ItemCustomMoves;
-                    
-                    lastMonLevel = party4[gTrainers[gTrainerBattleOpponent_A].partySize - 1].lvl;
-                }
-                break;
-            }
+			const struct TrainerMon *party = gTrainers[gTrainerBattleOpponent_A].party.TrainerMon;
+			lastMonLevel = party[gTrainers[gTrainerBattleOpponent_A].partySize - 1].lvl;
             for (; gTrainerMoneyTable[i].classId != 0xFF; i++)
             {
                 if (gTrainerMoneyTable[i].classId == gTrainers[gTrainerBattleOpponent_A].trainerClass)
@@ -8517,7 +8505,7 @@ static void Cmd_hiddenpowercalc(void)
               | ((gBattleMons[gBattlerAttacker].spAttackIV & 1) << 4)
               | ((gBattleMons[gBattlerAttacker].spDefenseIV & 1) << 5);
 
-    gDynamicBasePower = (40 * powerBits) / 63 + 30;
+    gDynamicBasePower = 70;
 
     // Subtract 3 instead of 1 below because 2 types are excluded (TYPE_NORMAL and TYPE_MYSTERY)
     // The final + 1 skips past Normal, and the following conditional skips TYPE_MYSTERY
@@ -9071,21 +9059,39 @@ static void Cmd_trysetgrudge(void)
     }
 }
 
-static void Cmd_weightdamagecalculation(void)
+static void Cmd_weightattackbasepowercalc(void)
 {
     s32 i;
-    for (i = 0; sWeightToDamageTable[i] != 0xFFFF; i += 2)
+	s32 j;
+    for (i = 0; sRelativeWeightToDamageTable[i] != 0xFFFF; i += 2)
     {
-        if (sWeightToDamageTable[i] > GetPokedexHeightWeight(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species), 1))
+        if (sRelativeWeightToDamageTable[i] > (GetPokedexHeightWeight(SpeciesToNationalPokedexNum(gBattleMons[gBattlerAttacker].species), 1)/ GetPokedexHeightWeight(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species), 1)))
             break;
     }
 
-    if (sWeightToDamageTable[i] != 0xFFFF)
-        gDynamicBasePower = sWeightToDamageTable[i + 1];
+    if (sRelativeWeightToDamageTable[i] != 0xFFFF)
+        gDynamicBasePower = sRelativeWeightToDamageTable[i + 1];
     else
         gDynamicBasePower = 120;
 
     gBattlescriptCurrInstr++;
+}
+
+static void Cmd_weightdamagecalculation(void)
+{
+	s32 i;
+	for (i = 0; sWeightToDamageTable[i] != 0xFFFF; i += 2)
+	{
+		if (sWeightToDamageTable[i] > GetPokedexHeightWeight(SpeciesToNationalPokedexNum(gBattleMons[gBattlerTarget].species), 1))
+			break;
+	}
+
+	if (sWeightToDamageTable[i] != 0xFFFF)
+		gDynamicBasePower = sWeightToDamageTable[i + 1];
+	else
+		gDynamicBasePower = 120;
+
+	gBattlescriptCurrInstr++;
 }
 
 static void Cmd_assistattackselect(void)
