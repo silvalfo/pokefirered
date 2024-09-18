@@ -68,6 +68,24 @@ enum {
 // For the second argument of GetMoveTarget, when no target override is needed
 #define NO_TARGET_OVERRIDE 0
 
+struct TrainerMon
+{
+	u16 iv;
+	u8 nickname[POKEMON_NAME_LENGTH + 1];
+	u8 ivs[NUM_STATS];
+	u8 lvl;
+	u16 species;
+	u16 heldItem;
+	u16 moves[MAX_MON_MOVES];
+	u8 gender;
+	u8 nature;
+	u8 ability;
+	u8 evs[NUM_STATS];
+	u8 ball;
+	bool32 shiny;
+	u8 friendship;
+};
+
 struct TrainerMonNoItemDefaultMoves
 {
     u16 iv;
@@ -104,6 +122,31 @@ struct TrainerMonItemCustomMoves
 #define NO_ITEM_CUSTOM_MOVES(party) { .NoItemCustomMoves = party }, .partySize = ARRAY_COUNT(party), .partyFlags = F_TRAINER_PARTY_CUSTOM_MOVESET
 #define ITEM_DEFAULT_MOVES(party) { .ItemDefaultMoves = party }, .partySize = ARRAY_COUNT(party), .partyFlags = F_TRAINER_PARTY_HELD_ITEM
 #define ITEM_CUSTOM_MOVES(party) { .ItemCustomMoves = party }, .partySize = ARRAY_COUNT(party), .partyFlags = F_TRAINER_PARTY_CUSTOM_MOVESET | F_TRAINER_PARTY_HELD_ITEM
+#define TRAINER_MON(party) { .TrainerMon = party }, .partySize = ARRAY_COUNT(party), .partyFlags = F_TRAINER_PARTY_CUSTOM_MON
+
+#define LVL_PLUS_5 252
+#define LVL_PLUS_4 251
+#define LVL_PLUS_3 250
+#define LVL_PLUS_2 249
+#define LVL_PLUS_1 248
+#define LVL_EQUAL 247
+#define LVL_MINUS_1 246
+#define LVL_MINUS_2 245
+#define LVL_MINUS_3 244
+#define LVL_MINUS_4 243
+#define LVL_MINUS_5 242
+
+#define LVL_BOSS_PLUS_5  152
+#define LVL_BOSS_PLUS_4  151
+#define LVL_BOSS_PLUS_3  150
+#define LVL_BOSS_PLUS_2  149
+#define LVL_BOSS_PLUS_1  148
+#define LVL_BOSS_EQUAL   147
+#define LVL_BOSS_MINUS_1 146
+#define LVL_BOSS_MINUS_2 145
+#define LVL_BOSS_MINUS_3 144
+#define LVL_BOSS_MINUS_4 143
+#define LVL_BOSS_MINUS_5 142
 
 union TrainerMonPtr
 {
@@ -111,6 +154,7 @@ union TrainerMonPtr
     const struct TrainerMonNoItemCustomMoves *NoItemCustomMoves;
     const struct TrainerMonItemDefaultMoves *ItemDefaultMoves;
     const struct TrainerMonItemCustomMoves *ItemCustomMoves;
+	const struct TrainerMon *TrainerMon;
 };
 
 struct Trainer
